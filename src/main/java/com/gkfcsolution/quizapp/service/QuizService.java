@@ -3,6 +3,7 @@ package com.gkfcsolution.quizapp.service;
 import com.gkfcsolution.quizapp.model.Question;
 import com.gkfcsolution.quizapp.model.QuestionWrapper;
 import com.gkfcsolution.quizapp.model.Quiz;
+import com.gkfcsolution.quizapp.model.QuizResponse;
 import com.gkfcsolution.quizapp.repository.QuestionRepo;
 import com.gkfcsolution.quizapp.repository.QuizRepo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,5 +63,25 @@ public class QuizService {
             return new ResponseEntity<>(questionForUser, HttpStatus.OK);
         }
         return new ResponseEntity<>(new ArrayList<>(), HttpStatus.BAD_REQUEST);
+    }
+
+    public ResponseEntity<Integer> calculateResult(int id, List<QuizResponse> responses) {
+
+        Quiz selectedQuiz = quizRepo.findById(id).orElse(null);
+        if (selectedQuiz != null) {
+            List<Question>  questions = selectedQuiz.getQuestions();
+            int score = 0;
+            for (QuizResponse userResponse : responses) {
+                for (Question question : questions) {
+                    if (userResponse.getId() == question.getId() && userResponse.getResponse().equals(question.getRightAnswer())) {
+                        score++;
+                        break; // Break to avoid counting the same question multiple times
+                    }
+                }
+            }
+
+            return new ResponseEntity<>(score, HttpStatus.OK);
+        }
+        return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
     }
 }
